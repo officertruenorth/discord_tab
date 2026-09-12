@@ -188,6 +188,17 @@ local function fetchDiscordData(discordId)
     end
 
     if discordRequests[discordId] then
+        local pending = discordRequests[discordId]
+        local timeoutAt = getNowMs() + 1500
+
+        while pending and not pending.done and getNowMs() < timeoutAt do
+            Wait(0)
+        end
+
+        if pending and pending.data then
+            return pending.data
+        end
+
         local cached = discordCache[discordId]
         return cached and cached.data or nil
     end
@@ -204,7 +215,11 @@ local function fetchDiscordData(discordId)
     end
 
     local ttl = tonumber(Config.DiscordApi and Config.DiscordApi.cacheTtlMs) or 0
-    discordRequests[discordId] = true
+    local pending = {
+        done = false,
+        data = nil
+    }
+    discordRequests[discordId] = pending
 
     local identifiers = { discordId, ('discord:' .. discordId) }
     local fetched = nil
@@ -214,9 +229,7 @@ local function fetchDiscordData(discordId)
 
         if type(bridgeMethod) == 'function' then
             for _, identifier in ipairs(identifiers) do
-                local ok, payload = pcall(function()
-                    return bridge[methodName](bridge, identifier)
-                end)
+                local ok, payload = pcall(bridgeMethod, identifier)
 
                 if ok and payload then
                     if type(payload) == 'string' and payload ~= '' then
@@ -239,14 +252,16 @@ local function fetchDiscordData(discordId)
         end
     end
 
-    discordRequests[discordId] = nil
-
     if fetched and ttl > 0 then
         discordCache[discordId] = {
             data = fetched,
             expiresAt = getNowMs() + ttl
         }
     end
+
+    pending.data = fetched
+    pending.done = true
+    discordRequests[discordId] = nil
 
     return fetched
 end
