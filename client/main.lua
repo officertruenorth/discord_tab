@@ -6,7 +6,7 @@ local function requestPlayers()
 end
 
 local function setVisible(visible)
-    SetNuiFocus(visible, false)
+    SetNuiFocus(false, false)
     SendNUIMessage({
         type = visible and 'open' or 'close'
     })
@@ -71,7 +71,6 @@ RegisterCommand('-' .. Config.Keybind.command, function()
 end, false)
 
 RegisterKeyMapping('+' .. Config.Keybind.command, 'Open Discord Scoreboard', 'keyboard', Config.Keybind.default)
-RegisterKeyMapping('-' .. Config.Keybind.command, 'Close Discord Scoreboard', 'keyboard', Config.Keybind.default)
 
 CreateThread(function()
     while true do

@@ -149,17 +149,3 @@ document.querySelectorAll('.sort-button[data-sort]').forEach((header) => {
         render();
     });
 });
-
-document.addEventListener('keyup', (event) => {
-    if (event.key !== 'Escape') {
-        return;
-    }
-
-    fetch(`https://${GetParentResourceName()}/close`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json; charset=UTF-8'
-        },
-        body: JSON.stringify({})
-    });
-});

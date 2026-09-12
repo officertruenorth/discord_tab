@@ -1,4 +1,5 @@
 local discordCache = {}
+local discordRequests = {}
 
 local function getNowMs()
     return os.time() * 1000
@@ -115,32 +116,44 @@ local function buildApiUrl(discordId)
     return (Config.NightsApi.endpoint:gsub('{discordId}', discordId))
 end
 
-local function fetchDiscordDataPromise(discordId)
-    local requestPromise = promise.new()
+local function getCachedDiscordData(discordId)
     if not discordId or discordId == '' then
-        requestPromise:resolve(nil)
-        return requestPromise
+        return nil
     end
 
     local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
+    if ttl <= 0 then
+        return nil
+    end
+
     local now = getNowMs()
     local cached = discordCache[discordId]
 
     if ttl > 0 and cached and cached.expiresAt > now then
-        requestPromise:resolve(cached.data)
-        return requestPromise
+        return cached.data
     end
 
+    return nil
+end
+
+local function queueDiscordFetch(discordId)
+    if not discordId or discordId == '' or discordRequests[discordId] then
+        return
+    end
+
+    local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
+    discordRequests[discordId] = true
+
     PerformHttpRequest(buildApiUrl(discordId), function(statusCode, body)
+        discordRequests[discordId] = nil
+
         if statusCode < 200 or statusCode >= 300 or not body or body == '' then
-            requestPromise:resolve(nil)
             return
         end
 
         local ok, decoded = pcall(json.decode, body)
 
         if not ok or not decoded then
-            requestPromise:resolve(nil)
             return
         end
 
@@ -150,11 +163,7 @@ local function fetchDiscordDataPromise(discordId)
                 expiresAt = getNowMs() + ttl
             }
         end
-
-        requestPromise:resolve(decoded)
     end, Config.NightsApi.method, '', Config.NightsApi.headers, { timeout = Config.NightsApi.timeoutMs })
-
-    return requestPromise
 end
 
 local function buildPlayerEntry(source, discordId, discordPayload)
@@ -172,21 +181,17 @@ end
 
 local function collectPlayers()
     local players = {}
-    local jobs = {}
 
     for _, playerId in ipairs(GetPlayers()) do
         local source = tonumber(playerId)
         local discordId = getDiscordId(source)
-        jobs[#jobs + 1] = {
-            source = source,
-            discordId = discordId,
-            request = fetchDiscordDataPromise(discordId)
-        }
-    end
+        local discordPayload = getCachedDiscordData(discordId)
 
-    for _, job in ipairs(jobs) do
-        local discordPayload = Citizen.Await(job.request)
-        players[#players + 1] = buildPlayerEntry(job.source, job.discordId, discordPayload)
+        if not discordPayload and discordId then
+            queueDiscordFetch(discordId)
+        end
+
+        players[#players + 1] = buildPlayerEntry(source, discordId, discordPayload)
     end
 
     return players

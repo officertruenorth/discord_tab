@@ -92,7 +92,6 @@ ensure discord_tab
 
 - Hold `TAB` (or your configured keybind) to open scoreboard.
 - Release to close.
-- Press `ESC` while open to close manually.
 
 ## Notes
 
