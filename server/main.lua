@@ -105,26 +105,29 @@ local function isBridgeErrorPayload(payload)
 end
 
 local function rolesContain(roles, mapping)
+    local mappingRoleId = tostring(mapping.discordRoleId or ''):match('^%s*(.-)%s*$')
+    local mappingRoleName = tostring(mapping.discordRoleName or ''):match('^%s*(.-)%s*$'):lower()
+
     for _, role in ipairs(roles) do
         if type(role) == 'table' then
             local id = tostring(role.id or role.role_id or '')
             local name = tostring(role.name or role.role_name or ''):lower()
 
-            if mapping.discordRoleId ~= '' and id ~= '' and id == tostring(mapping.discordRoleId) then
+            if mappingRoleId ~= '' and id ~= '' and id == mappingRoleId then
                 return true
             end
 
-            if mapping.discordRoleName ~= '' and name ~= '' and name == tostring(mapping.discordRoleName):lower() then
+            if mappingRoleName ~= '' and name ~= '' and name == mappingRoleName then
                 return true
             end
         elseif type(role) == 'string' then
             local value = role:lower()
 
-            if mapping.discordRoleId ~= '' and value == tostring(mapping.discordRoleId):lower() then
+            if mappingRoleId ~= '' and value == mappingRoleId:lower() then
                 return true
             end
 
-            if mapping.discordRoleName ~= '' and value == tostring(mapping.discordRoleName):lower() then
+            if mappingRoleName ~= '' and value == mappingRoleName then
                 return true
             end
         end
