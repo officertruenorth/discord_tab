@@ -7,14 +7,13 @@ Config.Keybind = {
 
 Config.RefreshIntervalMs = 2000
 
-Config.NightsApi = {
-    endpoint = 'https://YOUR_NIGHTS_ENDPOINT/users/{discordId}',
-    method = 'GET',
-    timeoutMs = 5000,
+Config.DiscordApi = {
     cacheTtlMs = 15000,
-    headers = {
-        ['Content-Type'] = 'application/json',
-        ['Authorization'] = '******'
+    methods = {
+        'GetUser',
+        'getUser',
+        'GetDiscordUser',
+        'getDiscordUser'
     }
 }
 

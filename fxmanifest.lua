@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'discord_tab'
-description 'FiveM scoreboard with Nights Discord API integration'
+description 'FiveM scoreboard with discordapi bridge integration'
 author 'officertruenorth'
 version '1.0.0'
 
