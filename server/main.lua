@@ -287,11 +287,14 @@ local function queueDiscordFetch(discordId)
         return
     end
 
-    discordRequests[cacheKey] = getNowMs()
+    local requestToken = getNowMs()
+    discordRequests[cacheKey] = requestToken
 
     CreateThread(function()
         pcall(fetchDiscordData, cacheKey)
-        discordRequests[cacheKey] = nil
+        if discordRequests[cacheKey] == requestToken then
+            discordRequests[cacheKey] = nil
+        end
     end)
 end
 

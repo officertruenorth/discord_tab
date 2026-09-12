@@ -90,7 +90,7 @@ Use your own Discord role IDs/names and ACE permissions.
 ## Installation
 
 1. Place folder in your server resources.
-2. Ensure your Discord bridge resource is running as `discordapi` (the current integration target is fixed to `exports.discordapi`).
+2. Discord bridge lookups target `exports.discordapi`; if that resource is not running, Discord fields will remain unlinked.
 3. Configure bridge method names and role mappings in `config.lua`.
 4. Add to your server config:
 
