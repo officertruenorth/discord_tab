@@ -281,7 +281,7 @@ local function queueDiscordFetch(discordId)
     discordRequests[cacheKey] = true
 
     CreateThread(function()
-        fetchDiscordData(cacheKey)
+        pcall(fetchDiscordData, cacheKey)
         discordRequests[cacheKey] = nil
     end)
 end
