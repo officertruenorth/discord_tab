@@ -14,12 +14,14 @@
     font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
+html,
 body {
     margin: 0;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     color: var(--text);
+    background: transparent;
 }
 
 #app {
@@ -37,6 +39,7 @@ body {
     opacity: 0;
     transform: scale(0.98);
     pointer-events: none;
+    visibility: hidden;
 }
 
 .panel {
@@ -44,7 +47,7 @@ body {
     max-height: 82vh;
     border-radius: 16px;
     padding: 18px;
-    background: linear-gradient(155deg, var(--bg), var(--bg-alt));
+    background: var(--bg);
     border: 1px solid var(--line);
     box-shadow: 0 20px 55px rgba(0, 0, 0, 0.55);
     display: flex;
@@ -102,7 +105,7 @@ thead {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.14), rgba(6, 182, 212, 0.14));
+    background: rgba(99, 102, 241, 0.14);
 }
 
 th,

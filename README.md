@@ -75,7 +75,7 @@ Expected error payload markers (ignored and treated as miss):
 ```lua
 Config.RoleMappings = {
     {
-        discordRoleId = '123456789012345678',
+        discordRoleId = '',
         discordRoleName = 'superadmin',
         acePermission = 'superadmin',
         label = 'Super Admin',
@@ -85,7 +85,12 @@ Config.RoleMappings = {
 }
 ```
 
-Use your own Discord role IDs/names and ACE permissions.
+`discordRoleId` is optional and can be left blank if you prefer matching by `discordRoleName`.
+
+Why this cannot be fully automatic:
+- Discord role IDs are unique per Discord server (guild), not global.
+- The resource only receives raw role data from your `discordapi` bridge and cannot safely infer which role should map to which in-game ACE group without your explicit mapping.
+- You decide the mapping by setting either role ID, role name, or both, alongside the ACE permission.
 
 ## Installation
 

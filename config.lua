@@ -19,7 +19,7 @@ Config.DiscordApi = {
 
 Config.RoleMappings = {
     {
-        discordRoleId = '000000000000000000',
+        discordRoleId = '',
         discordRoleName = 'superadmin',
         acePermission = 'superadmin',
         label = 'Super Admin',
@@ -27,7 +27,7 @@ Config.RoleMappings = {
         color = '#ef4444'
     },
     {
-        discordRoleId = '000000000000000001',
+        discordRoleId = '',
         discordRoleName = 'police',
         acePermission = 'group.police',
         label = 'Police',
@@ -35,7 +35,7 @@ Config.RoleMappings = {
         color = '#3b82f6'
     },
     {
-        discordRoleId = '000000000000000002',
+        discordRoleId = '',
         discordRoleName = 'fire',
         acePermission = 'group.fire',
         label = 'Fire',
