@@ -22,17 +22,17 @@ Modern FiveM in-game scoreboard/playerlist that integrates with the Nights Disco
 
 ## File Structure
 
-- `/home/runner/work/discord_tab/discord_tab/fxmanifest.lua`
-- `/home/runner/work/discord_tab/discord_tab/config.lua`
-- `/home/runner/work/discord_tab/discord_tab/server/main.lua`
-- `/home/runner/work/discord_tab/discord_tab/client/main.lua`
-- `/home/runner/work/discord_tab/discord_tab/html/index.html`
-- `/home/runner/work/discord_tab/discord_tab/html/style.css`
-- `/home/runner/work/discord_tab/discord_tab/html/script.js`
+- `fxmanifest.lua`
+- `config.lua`
+- `server/main.lua`
+- `client/main.lua`
+- `html/index.html`
+- `html/style.css`
+- `html/script.js`
 
 ## Configuration
 
-Edit `/home/runner/work/discord_tab/discord_tab/config.lua`.
+Edit `config.lua`.
 
 ### 1) Keybind
 

@@ -74,11 +74,12 @@ RegisterKeyMapping('+' .. Config.Keybind.command, 'Open Discord Scoreboard', 'ke
 
 CreateThread(function()
     while true do
-        Wait(0)
-
         if isOpen then
+            Wait(0)
             DisableControlAction(0, 37, true)
             DisableControlAction(0, 200, true)
+        else
+            Wait(500)
         end
     end
 end)

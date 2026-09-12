@@ -37,17 +37,54 @@ const render = () => {
 
     for (const player of data) {
         const tr = document.createElement('tr');
-        const roles = (player.roles || [])
-            .map((role) => `<span class="role-pill" style="--role-color:${role.color || '#64748b'}"><span>${role.icon || '•'}</span>${role.label || role.acePermission}</span>`)
-            .join('');
+        const idTd = document.createElement('td');
+        idTd.textContent = String(player.id ?? '');
 
-        tr.innerHTML = `
-            <td>${player.id}</td>
-            <td>${player.name}</td>
-            <td>${player.discordName}</td>
-            <td>${player.ping}</td>
-            <td>${roles ? `<div class="role-list">${roles}</div>` : '<span class="empty">None</span>'}</td>
-        `;
+        const nameTd = document.createElement('td');
+        nameTd.textContent = String(player.name ?? '');
+
+        const discordTd = document.createElement('td');
+        discordTd.textContent = String(player.discordName ?? '');
+
+        const pingTd = document.createElement('td');
+        pingTd.textContent = String(player.ping ?? '');
+
+        const rolesTd = document.createElement('td');
+        const playerRoles = player.roles || [];
+
+        if (playerRoles.length) {
+            const roleList = document.createElement('div');
+            roleList.className = 'role-list';
+
+            for (const role of playerRoles) {
+                const rolePill = document.createElement('span');
+                rolePill.className = 'role-pill';
+                rolePill.style.setProperty('--role-color', role.color || '#64748b');
+
+                const icon = document.createElement('span');
+                icon.textContent = role.icon || '•';
+
+                const label = document.createElement('span');
+                label.textContent = role.label || role.acePermission || 'Role';
+
+                rolePill.appendChild(icon);
+                rolePill.appendChild(label);
+                roleList.appendChild(rolePill);
+            }
+
+            rolesTd.appendChild(roleList);
+        } else {
+            const empty = document.createElement('span');
+            empty.className = 'empty';
+            empty.textContent = 'None';
+            rolesTd.appendChild(empty);
+        }
+
+        tr.appendChild(idTd);
+        tr.appendChild(nameTd);
+        tr.appendChild(discordTd);
+        tr.appendChild(pingTd);
+        tr.appendChild(rolesTd);
 
         rowsEl.appendChild(tr);
     }

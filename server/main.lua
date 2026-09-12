@@ -122,9 +122,9 @@ local function fetchDiscordData(discordId)
             return
         end
 
-        local decoded = json.decode(body)
+        local ok, decoded = pcall(json.decode, body)
 
-        if not decoded then
+        if not ok or not decoded then
             requestPromise:resolve(nil)
             return
         end
