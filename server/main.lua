@@ -75,17 +75,25 @@ local function normalizeDiscordName(payload)
     return nil
 end
 
-local function hasUsableDiscordPayload(payload)
+local function isBridgeErrorPayload(payload)
     if type(payload) ~= 'table' then
         return false
     end
 
-    if normalizeDiscordName(payload) then
+    if payload.success == false or payload.ok == false then
         return true
     end
 
-    local roles = normalizeDiscordRoles(payload)
-    if #roles > 0 then
+    if type(payload.error) == 'string' and payload.error ~= '' then
+        return true
+    end
+
+    if type(payload.errors) == 'table' and next(payload.errors) ~= nil then
+        return true
+    end
+
+    local status = tonumber(payload.status or payload.statusCode)
+    if status and status >= 400 then
         return true
     end
 
@@ -202,9 +210,6 @@ local function fetchDiscordData(discordId)
         if type(bridgeMethod) == 'function' then
             for _, identifier in ipairs(identifiers) do
                 local ok, payload = pcall(bridgeMethod, identifier)
-                if not ok then
-                    ok, payload = pcall(bridgeMethod, bridge, identifier)
-                end
 
                 if ok and payload then
                     if type(payload) == 'string' and payload ~= '' then
@@ -214,7 +219,7 @@ local function fetchDiscordData(discordId)
                         end
                     end
 
-                    if type(payload) == 'table' and hasUsableDiscordPayload(payload) then
+                    if type(payload) == 'table' and not isBridgeErrorPayload(payload) then
                         fetched = payload
                         break
                     end
