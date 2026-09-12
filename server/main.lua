@@ -148,8 +148,22 @@ local function buildMappedRoles(source, discordRoles)
     return mapped
 end
 
+local function normalizeDiscordIdentifier(discordId)
+    local normalized = tostring(discordId or '')
+    if normalized:sub(1, 8) == 'discord:' then
+        normalized = normalized:sub(9)
+    end
+
+    if normalized == '' then
+        return nil
+    end
+
+    return normalized
+end
+
 local function getCachedDiscordData(discordId)
-    if not discordId or discordId == '' then
+    local cacheKey = normalizeDiscordIdentifier(discordId)
+    if not cacheKey then
         return nil
     end
 
@@ -159,7 +173,7 @@ local function getCachedDiscordData(discordId)
     end
 
     local now = getNowMs()
-    local cached = discordCache[discordId]
+    local cached = discordCache[cacheKey]
 
     if ttl > 0 and cached and cached.expiresAt > now then
         return cached.data
@@ -182,12 +196,8 @@ local function getBridgeMethods()
 end
 
 local function buildLookupIdentifiers(discordId)
-    local normalized = tostring(discordId or '')
-    if normalized:sub(1, 8) == 'discord:' then
-        normalized = normalized:sub(9)
-    end
-
-    if normalized == '' then
+    local normalized = normalizeDiscordIdentifier(discordId)
+    if not normalized then
         return {}
     end
 
@@ -195,7 +205,8 @@ local function buildLookupIdentifiers(discordId)
 end
 
 local function fetchDiscordData(discordId)
-    if not discordId or discordId == '' then
+    local cacheKey = normalizeDiscordIdentifier(discordId)
+    if not cacheKey then
         return
     end
 
@@ -223,7 +234,9 @@ local function fetchDiscordData(discordId)
 
         if type(bridgeMethod) == 'function' then
             for _, identifier in ipairs(identifiers) do
-                local ok, payload = pcall(bridgeMethod, identifier)
+                local ok, payload = pcall(function()
+                    return bridge[methodName](bridge, identifier)
+                end)
 
                 if ok and payload then
                     if type(payload) == 'string' and payload ~= '' then
@@ -247,7 +260,7 @@ local function fetchDiscordData(discordId)
     end
 
     if fetched and ttl > 0 then
-        discordCache[discordId] = {
+        discordCache[cacheKey] = {
             data = fetched,
             expiresAt = getNowMs() + ttl
         }
