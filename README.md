@@ -61,7 +61,7 @@ The scoreboard reads bridge exports from `exports.discordapi` and calls methods 
 
 Expected success payload (any of these shapes):
 - `username` / `global_name` / `displayName` / `name`
-- or nested under `user`, `member.user`, or `data`
+- or nested under `user`, `member.name`, `member.user`, or `data`
 - `roles` can be at root, `data.roles`, `user.roles`, or `member.roles`
 
 Expected error payload markers (ignored and treated as miss):

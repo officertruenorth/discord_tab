@@ -64,6 +64,10 @@ local function normalizeDiscordName(payload)
         return payload.user.global_name or payload.user.username or payload.user.displayName or payload.user.name
     end
 
+    if type(payload.member) == 'table' and type(payload.member.name) == 'string' and payload.member.name ~= '' then
+        return payload.member.name
+    end
+
     if type(payload.member) == 'table' and type(payload.member.user) == 'table' then
         return payload.member.user.global_name or payload.member.user.username or payload.member.user.displayName or payload.member.user.name
     end
@@ -274,11 +278,16 @@ end
 
 local function queueDiscordFetch(discordId)
     local cacheKey = normalizeDiscordIdentifier(discordId)
-    if not cacheKey or discordRequests[cacheKey] then
+    if not cacheKey then
         return
     end
 
-    discordRequests[cacheKey] = true
+    local existingRequestStartedAt = discordRequests[cacheKey]
+    if existingRequestStartedAt and (getNowMs() - existingRequestStartedAt) < 5000 then
+        return
+    end
+
+    discordRequests[cacheKey] = getNowMs()
 
     CreateThread(function()
         pcall(fetchDiscordData, cacheKey)
