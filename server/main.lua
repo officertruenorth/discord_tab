@@ -182,6 +182,19 @@ local function getBridgeMethods()
     return methods
 end
 
+local function buildLookupIdentifiers(discordId)
+    local normalized = tostring(discordId or '')
+    if normalized:sub(1, 8) == 'discord:' then
+        normalized = normalized:sub(9)
+    end
+
+    if normalized == '' then
+        return {}
+    end
+
+    return { normalized, ('discord:' .. normalized) }
+end
+
 local function fetchDiscordData(discordId)
     if not discordId or discordId == '' then
         return
@@ -192,7 +205,7 @@ local function fetchDiscordData(discordId)
         local timeoutAt = getNowMs() + 1500
 
         while pending and not pending.done and getNowMs() < timeoutAt do
-            Wait(0)
+            Wait(25)
         end
 
         if pending and pending.data then
@@ -204,8 +217,10 @@ local function fetchDiscordData(discordId)
     end
 
     local bridgeResource = (Config.DiscordApi and Config.DiscordApi.resource) or 'discordapi'
-    local bridge = exports[bridgeResource]
-    if not bridge then
+    local okBridge, bridge = pcall(function()
+        return exports[bridgeResource]
+    end)
+    if not okBridge or not bridge then
         return
     end
 
@@ -221,7 +236,12 @@ local function fetchDiscordData(discordId)
     }
     discordRequests[discordId] = pending
 
-    local identifiers = { discordId, ('discord:' .. discordId) }
+    local identifiers = buildLookupIdentifiers(discordId)
+    if #identifiers == 0 then
+        pending.done = true
+        discordRequests[discordId] = nil
+        return
+    end
     local fetched = nil
 
     for _, methodName in ipairs(methods) do
