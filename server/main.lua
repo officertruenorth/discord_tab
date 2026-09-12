@@ -1,5 +1,9 @@
 local discordCache = {}
 
+local function getNowMs()
+    return os.time() * 1000
+end
+
 local function getDiscordId(source)
     for _, identifier in ipairs(GetPlayerIdentifiers(source)) do
         if identifier:sub(1, 8) == 'discord:' then
@@ -119,7 +123,7 @@ local function fetchDiscordDataPromise(discordId)
     end
 
     local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
-    local now = GetGameTimer()
+    local now = getNowMs()
     local cached = discordCache[discordId]
 
     if ttl > 0 and cached and cached.expiresAt > now then
@@ -143,7 +147,7 @@ local function fetchDiscordDataPromise(discordId)
         if ttl > 0 then
             discordCache[discordId] = {
                 data = decoded,
-                expiresAt = GetGameTimer() + ttl
+                expiresAt = getNowMs() + ttl
             }
         end
 

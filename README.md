@@ -80,7 +80,7 @@ Use your own Discord role IDs/names and ACE permissions.
 ## Installation
 
 1. Place folder in your server resources.
-2. Ensure dependency/resource for Nights API is available for your setup.
+2. Configure a reachable Nights Discord API HTTP endpoint and valid auth headers in `config.lua`.
 3. Configure endpoint, auth, and role mappings in `config.lua`.
 4. Add to your server config:
 

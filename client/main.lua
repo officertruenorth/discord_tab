@@ -71,6 +71,7 @@ RegisterCommand('-' .. Config.Keybind.command, function()
 end, false)
 
 RegisterKeyMapping('+' .. Config.Keybind.command, 'Open Discord Scoreboard', 'keyboard', Config.Keybind.default)
+RegisterKeyMapping('-' .. Config.Keybind.command, 'Close Discord Scoreboard', 'keyboard', Config.Keybind.default)
 
 CreateThread(function()
     while true do
