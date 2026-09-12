@@ -1,6 +1,6 @@
 # discord_tab
 
-Modern FiveM in-game scoreboard/playerlist that integrates with the Nights Discord API and only displays Discord roles mapped to in-game ACE permissions.
+Modern FiveM in-game scoreboard/playerlist that integrates with a `discordapi` bridge export and only displays Discord roles mapped to in-game ACE permissions.
 
 ## Features
 
@@ -8,7 +8,7 @@ Modern FiveM in-game scoreboard/playerlist that integrates with the Nights Disco
 - Displays:
   - Server ID
   - In-game player name
-  - Discord name (from Nights API)
+  - Discord name (from discordapi bridge)
   - Ping
   - Mapped game roles (icon + color badge)
 - Role filtering logic:
@@ -43,22 +43,22 @@ Config.Keybind = {
 }
 ```
 
-### 2) Nights API
-
-Set your Nights Discord API endpoint and auth header. `{discordId}` is replaced automatically.
+### 2) Discord bridge
 
 ```lua
-Config.NightsApi = {
-    endpoint = 'https://YOUR_NIGHTS_ENDPOINT/users/{discordId}',
-    method = 'GET',
-    timeoutMs = 5000,
+Config.DiscordApi = {
+    resource = 'discordapi',
     cacheTtlMs = 15000,
-    headers = {
-        ['Content-Type'] = 'application/json',
-        ['Authorization'] = '******'
+    methods = {
+        'GetUser',
+        'getUser',
+        'GetDiscordUser',
+        'getDiscordUser'
     }
 }
 ```
+
+Set `resource` to your bridge resource name and keep the method list in preferred order for your bridge exports.
 
 ### 3) Role Mapping (Discord -> ACE)
 
@@ -80,8 +80,8 @@ Use your own Discord role IDs/names and ACE permissions.
 ## Installation
 
 1. Place folder in your server resources.
-2. Configure a reachable Nights Discord API HTTP endpoint and valid auth headers in `config.lua`.
-3. Configure endpoint, auth, and role mappings in `config.lua`.
+2. Ensure your Discord bridge resource is running (default: `discordapi`).
+3. Configure bridge method names and role mappings in `config.lua`.
 4. Add to your server config:
 
 ```cfg

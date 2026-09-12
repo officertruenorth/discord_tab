@@ -32,6 +32,10 @@ local function normalizeDiscordRoles(payload)
         return payload.user.roles
     end
 
+    if type(payload.member) == 'table' and type(payload.member.roles) == 'table' then
+        return payload.member.roles
+    end
+
     return {}
 end
 
@@ -52,12 +56,20 @@ local function normalizeDiscordName(payload)
         return payload.displayName
     end
 
+    if type(payload.name) == 'string' and payload.name ~= '' then
+        return payload.name
+    end
+
     if type(payload.user) == 'table' then
-        return payload.user.global_name or payload.user.username or payload.user.displayName
+        return payload.user.global_name or payload.user.username or payload.user.displayName or payload.user.name
+    end
+
+    if type(payload.member) == 'table' and type(payload.member.user) == 'table' then
+        return payload.member.user.global_name or payload.member.user.username or payload.member.user.displayName or payload.member.user.name
     end
 
     if type(payload.data) == 'table' then
-        return payload.data.global_name or payload.data.username or payload.data.displayName
+        return payload.data.global_name or payload.data.username or payload.data.displayName or payload.data.name
     end
 
     return nil
@@ -112,16 +124,12 @@ local function buildMappedRoles(source, discordRoles)
     return mapped
 end
 
-local function buildApiUrl(discordId)
-    return (Config.NightsApi.endpoint:gsub('{discordId}', discordId))
-end
-
 local function getCachedDiscordData(discordId)
     if not discordId or discordId == '' then
         return nil
     end
 
-    local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
+    local ttl = tonumber(Config.DiscordApi and Config.DiscordApi.cacheTtlMs) or 0
     if ttl <= 0 then
         return nil
     end
@@ -136,34 +144,82 @@ local function getCachedDiscordData(discordId)
     return nil
 end
 
-local function queueDiscordFetch(discordId)
+local function getBridgeMethods()
+    local methods = {}
+    local configMethods = (Config.DiscordApi and Config.DiscordApi.methods) or {}
+
+    for _, method in ipairs(configMethods) do
+        if type(method) == 'string' and method ~= '' then
+            methods[#methods + 1] = method
+        end
+    end
+
+    return methods
+end
+
+local function fetchDiscordData(discordId)
     if not discordId or discordId == '' or discordRequests[discordId] then
         return
     end
 
-    local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
+    local bridgeResource = (Config.DiscordApi and Config.DiscordApi.resource) or 'discordapi'
+    local bridge = exports[bridgeResource]
+    if not bridge then
+        return
+    end
+
+    local methods = getBridgeMethods()
+    if #methods == 0 then
+        return
+    end
+
+    local ttl = tonumber(Config.DiscordApi and Config.DiscordApi.cacheTtlMs) or 0
     discordRequests[discordId] = true
 
-    PerformHttpRequest(buildApiUrl(discordId), function(statusCode, body)
-        discordRequests[discordId] = nil
+    local identifiers = { discordId, ('discord:' .. discordId) }
+    local fetched = nil
 
-        if statusCode < 200 or statusCode >= 300 or not body or body == '' then
-            return
+    for _, methodName in ipairs(methods) do
+        local bridgeMethod = bridge[methodName]
+
+        if type(bridgeMethod) == 'function' then
+            for _, identifier in ipairs(identifiers) do
+                local ok, payload = pcall(bridgeMethod, identifier)
+                if not ok then
+                    ok, payload = pcall(bridgeMethod, bridge, identifier)
+                end
+
+                if ok and payload then
+                    if type(payload) == 'string' and payload ~= '' then
+                        local decodedOk, decodedPayload = pcall(json.decode, payload)
+                        if decodedOk and decodedPayload then
+                            payload = decodedPayload
+                        end
+                    end
+
+                    if type(payload) == 'table' then
+                        fetched = payload
+                        break
+                    end
+                end
+            end
         end
 
-        local ok, decoded = pcall(json.decode, body)
-
-        if not ok or not decoded then
-            return
+        if fetched then
+            break
         end
+    end
 
-        if ttl > 0 then
-            discordCache[discordId] = {
-                data = decoded,
-                expiresAt = getNowMs() + ttl
-            }
-        end
-    end, Config.NightsApi.method, '', Config.NightsApi.headers, { timeout = Config.NightsApi.timeoutMs })
+    discordRequests[discordId] = nil
+
+    if fetched and ttl > 0 then
+        discordCache[discordId] = {
+            data = fetched,
+            expiresAt = getNowMs() + ttl
+        }
+    end
+
+    return fetched
 end
 
 local function buildPlayerEntry(source, discordId, discordPayload)
@@ -188,7 +244,7 @@ local function collectPlayers()
         local discordPayload = getCachedDiscordData(discordId)
 
         if not discordPayload and discordId then
-            queueDiscordFetch(discordId)
+            discordPayload = fetchDiscordData(discordId)
         end
 
         players[#players + 1] = buildPlayerEntry(source, discordId, discordPayload)
