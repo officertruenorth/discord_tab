@@ -114,6 +114,14 @@ local function fetchDiscordData(discordId)
         return nil
     end
 
+    local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
+    local now = GetGameTimer()
+    local cached = discordCache[discordId]
+
+    if ttl > 0 and cached and cached.expiresAt > now then
+        return cached.data
+    end
+
     local requestPromise = promise.new()
 
     PerformHttpRequest(buildApiUrl(discordId), function(statusCode, body)
@@ -127,6 +135,13 @@ local function fetchDiscordData(discordId)
         if not ok or not decoded then
             requestPromise:resolve(nil)
             return
+        end
+
+        if ttl > 0 then
+            discordCache[discordId] = {
+                data = decoded,
+                expiresAt = GetGameTimer() + ttl
+            }
         end
 
         requestPromise:resolve(decoded)
@@ -152,10 +167,20 @@ end
 
 local function collectPlayers()
     local players = {}
+    local jobs = {}
 
     for _, playerId in ipairs(GetPlayers()) do
         local source = tonumber(playerId)
-        players[#players + 1] = buildPlayerEntry(source)
+        local requestPromise = promise.new()
+        jobs[#jobs + 1] = requestPromise
+
+        CreateThread(function()
+            requestPromise:resolve(buildPlayerEntry(source))
+        end)
+    end
+
+    for _, job in ipairs(jobs) do
+        players[#players + 1] = Citizen.Await(job)
     end
 
     return players
@@ -172,3 +197,4 @@ RegisterNetEvent('discord_tab:server:requestPlayers', function()
         total = #players
     })
 end)
+local discordCache = {}

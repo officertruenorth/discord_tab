@@ -52,6 +52,7 @@ Config.NightsApi = {
     endpoint = 'https://YOUR_NIGHTS_ENDPOINT/users/{discordId}',
     method = 'GET',
     timeoutMs = 5000,
+    cacheTtlMs = 15000,
     headers = {
         ['Content-Type'] = 'application/json',
         ['Authorization'] = '******'

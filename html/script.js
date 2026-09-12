@@ -111,14 +111,18 @@ window.addEventListener('message', (event) => {
 
     if (message.type === 'update') {
         const payload = message.payload || {};
-        titleEl.textContent = payload.title || titleEl.textContent;
-        subtitleEl.textContent = payload.subtitle || subtitleEl.textContent;
+        if (payload.title !== undefined) {
+            titleEl.textContent = payload.title;
+        }
+        if (payload.subtitle !== undefined) {
+            subtitleEl.textContent = payload.subtitle;
+        }
         players = payload.players || [];
         render();
     }
 });
 
-document.querySelectorAll('th[data-sort]').forEach((header) => {
+document.querySelectorAll('.sort-button[data-sort]').forEach((header) => {
     header.addEventListener('click', () => {
         const nextSort = header.dataset.sort;
 
@@ -128,6 +132,14 @@ document.querySelectorAll('th[data-sort]').forEach((header) => {
             sortBy = nextSort;
             sortDirection = 'asc';
         }
+
+        document.querySelectorAll('.sort-button[data-sort]').forEach((button) => {
+            if (button.dataset.sort === sortBy) {
+                button.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
+            } else {
+                button.setAttribute('aria-sort', 'none');
+            }
+        });
 
         render();
     });
