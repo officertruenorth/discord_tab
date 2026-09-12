@@ -75,6 +75,23 @@ local function normalizeDiscordName(payload)
     return nil
 end
 
+local function hasUsableDiscordPayload(payload)
+    if type(payload) ~= 'table' then
+        return false
+    end
+
+    if normalizeDiscordName(payload) then
+        return true
+    end
+
+    local roles = normalizeDiscordRoles(payload)
+    if #roles > 0 then
+        return true
+    end
+
+    return false
+end
+
 local function rolesContain(roles, mapping)
     for _, role in ipairs(roles) do
         if type(role) == 'table' then
@@ -197,7 +214,7 @@ local function fetchDiscordData(discordId)
                         end
                     end
 
-                    if type(payload) == 'table' then
+                    if type(payload) == 'table' and hasUsableDiscordPayload(payload) then
                         fetched = payload
                         break
                     end
