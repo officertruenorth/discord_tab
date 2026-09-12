@@ -134,10 +134,15 @@ document.querySelectorAll('.sort-button[data-sort]').forEach((header) => {
         }
 
         document.querySelectorAll('.sort-button[data-sort]').forEach((button) => {
+            const header = button.closest('th');
+            if (!header) {
+                return;
+            }
+
             if (button.dataset.sort === sortBy) {
-                button.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
+                header.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
             } else {
-                button.setAttribute('aria-sort', 'none');
+                header.setAttribute('aria-sort', 'none');
             }
         });
 

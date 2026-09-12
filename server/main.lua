@@ -1,3 +1,5 @@
+local discordCache = {}
+
 local function getDiscordId(source)
     for _, identifier in ipairs(GetPlayerIdentifiers(source)) do
         if identifier:sub(1, 8) == 'discord:' then
@@ -109,9 +111,11 @@ local function buildApiUrl(discordId)
     return (Config.NightsApi.endpoint:gsub('{discordId}', discordId))
 end
 
-local function fetchDiscordData(discordId)
+local function fetchDiscordDataPromise(discordId)
+    local requestPromise = promise.new()
     if not discordId or discordId == '' then
-        return nil
+        requestPromise:resolve(nil)
+        return requestPromise
     end
 
     local ttl = tonumber(Config.NightsApi.cacheTtlMs) or 0
@@ -119,10 +123,9 @@ local function fetchDiscordData(discordId)
     local cached = discordCache[discordId]
 
     if ttl > 0 and cached and cached.expiresAt > now then
-        return cached.data
+        requestPromise:resolve(cached.data)
+        return requestPromise
     end
-
-    local requestPromise = promise.new()
 
     PerformHttpRequest(buildApiUrl(discordId), function(statusCode, body)
         if statusCode < 200 or statusCode >= 300 or not body or body == '' then
@@ -147,12 +150,10 @@ local function fetchDiscordData(discordId)
         requestPromise:resolve(decoded)
     end, Config.NightsApi.method, '', Config.NightsApi.headers, { timeout = Config.NightsApi.timeoutMs })
 
-    return Citizen.Await(requestPromise)
+    return requestPromise
 end
 
-local function buildPlayerEntry(source)
-    local discordId = getDiscordId(source)
-    local discordPayload = fetchDiscordData(discordId)
+local function buildPlayerEntry(source, discordId, discordPayload)
     local discordRoles = normalizeDiscordRoles(discordPayload)
 
     return {
@@ -171,16 +172,17 @@ local function collectPlayers()
 
     for _, playerId in ipairs(GetPlayers()) do
         local source = tonumber(playerId)
-        local requestPromise = promise.new()
-        jobs[#jobs + 1] = requestPromise
-
-        CreateThread(function()
-            requestPromise:resolve(buildPlayerEntry(source))
-        end)
+        local discordId = getDiscordId(source)
+        jobs[#jobs + 1] = {
+            source = source,
+            discordId = discordId,
+            request = fetchDiscordDataPromise(discordId)
+        }
     end
 
     for _, job in ipairs(jobs) do
-        players[#players + 1] = Citizen.Await(job)
+        local discordPayload = Citizen.Await(job.request)
+        players[#players + 1] = buildPlayerEntry(job.source, job.discordId, discordPayload)
     end
 
     return players
@@ -197,4 +199,3 @@ RegisterNetEvent('discord_tab:server:requestPlayers', function()
         total = #players
     })
 end)
-local discordCache = {}
