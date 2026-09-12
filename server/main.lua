@@ -80,18 +80,6 @@ local function isBridgeErrorPayload(payload)
         return false
     end
 
-    local function isErrorLikeString(value)
-        if type(value) ~= 'string' then
-            return false
-        end
-
-        local lowered = value:lower()
-        return lowered:find('error', 1, true) ~= nil
-            or lowered:find('failed', 1, true) ~= nil
-            or lowered:find('invalid', 1, true) ~= nil
-            or lowered:find('not found', 1, true) ~= nil
-    end
-
     if payload.success == false or payload.ok == false then
         return true
     end
@@ -256,10 +244,8 @@ local function fetchDiscordData(discordId)
                         local decodedOk, decodedPayload = pcall(json.decode, payload)
                         if decodedOk and decodedPayload then
                             payload = decodedPayload
-                        elseif isErrorLikeString(payload) then
-                            payload = nil
                         else
-                            payload = { username = payload }
+                            payload = nil
                         end
                     end
 
