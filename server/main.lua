@@ -183,8 +183,13 @@ local function getBridgeMethods()
 end
 
 local function fetchDiscordData(discordId)
-    if not discordId or discordId == '' or discordRequests[discordId] then
+    if not discordId or discordId == '' then
         return
+    end
+
+    if discordRequests[discordId] then
+        local cached = discordCache[discordId]
+        return cached and cached.data or nil
     end
 
     local bridgeResource = (Config.DiscordApi and Config.DiscordApi.resource) or 'discordapi'
@@ -209,7 +214,9 @@ local function fetchDiscordData(discordId)
 
         if type(bridgeMethod) == 'function' then
             for _, identifier in ipairs(identifiers) do
-                local ok, payload = pcall(bridgeMethod, identifier)
+                local ok, payload = pcall(function()
+                    return bridge[methodName](bridge, identifier)
+                end)
 
                 if ok and payload then
                     if type(payload) == 'string' and payload ~= '' then
