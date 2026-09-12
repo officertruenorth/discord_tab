@@ -1,5 +1,4 @@
 local discordCache = {}
-local discordRequests = {}
 
 local function getNowMs()
     return os.time() * 1000
@@ -200,25 +199,8 @@ local function fetchDiscordData(discordId)
         return
     end
 
-    if discordRequests[discordId] then
-        local pending = discordRequests[discordId]
-        local timeoutAt = getNowMs() + 1500
-
-        while pending and not pending.done and getNowMs() < timeoutAt do
-            Wait(25)
-        end
-
-        if pending and pending.data then
-            return pending.data
-        end
-
-        local cached = discordCache[discordId]
-        return cached and cached.data or nil
-    end
-
-    local bridgeResource = (Config.DiscordApi and Config.DiscordApi.resource) or 'discordapi'
     local okBridge, bridge = pcall(function()
-        return exports[bridgeResource]
+        return exports.discordapi
     end)
     if not okBridge or not bridge then
         return
@@ -230,16 +212,8 @@ local function fetchDiscordData(discordId)
     end
 
     local ttl = tonumber(Config.DiscordApi and Config.DiscordApi.cacheTtlMs) or 0
-    local pending = {
-        done = false,
-        data = nil
-    }
-    discordRequests[discordId] = pending
-
     local identifiers = buildLookupIdentifiers(discordId)
     if #identifiers == 0 then
-        pending.done = true
-        discordRequests[discordId] = nil
         return
     end
     local fetched = nil
@@ -278,10 +252,6 @@ local function fetchDiscordData(discordId)
             expiresAt = getNowMs() + ttl
         }
     end
-
-    pending.data = fetched
-    pending.done = true
-    discordRequests[discordId] = nil
 
     return fetched
 end

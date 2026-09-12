@@ -8,7 +8,6 @@ Config.Keybind = {
 Config.RefreshIntervalMs = 2000
 
 Config.DiscordApi = {
-    resource = 'discordapi',
     cacheTtlMs = 15000,
     methods = {
         'GetUser',

@@ -47,7 +47,6 @@ Config.Keybind = {
 
 ```lua
 Config.DiscordApi = {
-    resource = 'discordapi',
     cacheTtlMs = 15000,
     methods = {
         'GetUser',
@@ -58,7 +57,18 @@ Config.DiscordApi = {
 }
 ```
 
-Set `resource` to your bridge resource name and keep the method list in preferred order for your bridge exports.
+The scoreboard reads bridge exports from `exports.discordapi` and calls methods in the configured order until one returns a non-error payload.
+
+Expected success payload (any of these shapes):
+- `username` / `global_name` / `displayName` / `name`
+- or nested under `user`, `member.user`, or `data`
+- `roles` can be at root, `data.roles`, `user.roles`, or `member.roles`
+
+Expected error payload markers (ignored and treated as miss):
+- `success = false` or `ok = false`
+- non-empty `error` string
+- non-empty `errors` table
+- `status`/`statusCode` >= 400
 
 ### 3) Role Mapping (Discord -> ACE)
 
