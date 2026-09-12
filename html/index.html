@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Discord Tab</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="app" class="hidden">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h1 id="title">City Scoreboard</h1>
+                    <p id="subtitle">Discord Synced Player List</p>
+                </div>
+                <div class="meta">
+                    <span id="playerCount">0 Players</span>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table aria-labelledby="title">
+                    <thead>
+                        <tr>
+                            <th aria-sort="ascending"><button type="button" class="sort-button" data-sort="id">ID</button></th>
+                            <th aria-sort="none"><button type="button" class="sort-button" data-sort="name">In-Game Name</button></th>
+                            <th aria-sort="none"><button type="button" class="sort-button" data-sort="discordName">Discord Name</button></th>
+                            <th aria-sort="none"><button type="button" class="sort-button" data-sort="ping">Ping</button></th>
+                            <th aria-sort="none"><button type="button" class="sort-button" data-sort="roles">Roles</button></th>
+                        </tr>
+                    </thead>
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
