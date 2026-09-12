@@ -1,4 +1,5 @@
 local discordCache = {}
+local discordRequests = {}
 
 local function getNowMs()
     return os.time() * 1000
@@ -243,6 +244,8 @@ local function fetchDiscordData(discordId)
                         local decodedOk, decodedPayload = pcall(json.decode, payload)
                         if decodedOk and decodedPayload then
                             payload = decodedPayload
+                        else
+                            payload = { username = payload }
                         end
                     end
 
@@ -269,6 +272,20 @@ local function fetchDiscordData(discordId)
     return fetched
 end
 
+local function queueDiscordFetch(discordId)
+    local cacheKey = normalizeDiscordIdentifier(discordId)
+    if not cacheKey or discordRequests[cacheKey] then
+        return
+    end
+
+    discordRequests[cacheKey] = true
+
+    CreateThread(function()
+        fetchDiscordData(cacheKey)
+        discordRequests[cacheKey] = nil
+    end)
+end
+
 local function buildPlayerEntry(source, discordId, discordPayload)
     local discordRoles = normalizeDiscordRoles(discordPayload)
 
@@ -291,7 +308,7 @@ local function collectPlayers()
         local discordPayload = getCachedDiscordData(discordId)
 
         if not discordPayload and discordId then
-            discordPayload = fetchDiscordData(discordId)
+            queueDiscordFetch(discordId)
         end
 
         players[#players + 1] = buildPlayerEntry(source, discordId, discordPayload)
